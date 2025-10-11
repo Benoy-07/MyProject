@@ -165,12 +165,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 const SizedBox(height: 24),
                 
-                // Login Button
-                // CustomButton(
-                //   text: languageProvider.isBengali ? 'সাইন ইন' : 'Sign In',
-                //   onPressed: authProvider.isLoading ? null : _login,
-                //   isLoading: authProvider.isLoading,
-                // ),
+                Login Button
+                CustomButton(
+                  text: languageProvider.isBengali ? 'সাইন ইন' : 'Sign In',
+                  onPressed: authProvider.isLoading ? null : _login,
+                  isLoading: authProvider.isLoading,
+                ),
                 
                 const SizedBox(height: 16),
                 
