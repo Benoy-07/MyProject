@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hall_dining_app/models/event_model.dart';
+import 'package:hall_dining_app/models/payment_model.dart';
 import 'package:provider/provider.dart';
 import '../../providers/payment_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -215,7 +216,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         groupValue: paymentProvider.selectedMethod,
         onChanged: (PaymentMethod? value) {
           if (value != null) {
-            paymentProvider.setSelectedMethod(value);
+            paymentProvider.setSelectedMethod(value as PaymentMethod);
           }
         },
         title: Row(

@@ -27,12 +27,39 @@ class BookingProvider with ChangeNotifier {
 
   // Initialize provider
   void initialize(String userId) {
-    _loadUserBookings(userId);
+    loadUserBookings(userId);
     _loadUpcomingBookings(userId);
   }
 
+  // Load all bookings (for admin)
+  Future<void> loadAllBookings() async {
+    _isLoading = true;
+    _error = '';
+    notifyListeners();
+
+    try {
+      _firestoreService.getAllBookingsStream().listen((bookings) {
+        _bookings = bookings;
+        _bookingHistory = bookings.where((booking) => 
+          booking.status == BookingStatus.completed || 
+          booking.status == BookingStatus.cancelled
+        ).toList();
+        _isLoading = false;
+        notifyListeners();
+      }, onError: (error) {
+        _error = 'Failed to load all bookings: $error';
+        _isLoading = false;
+        notifyListeners();
+      });
+    } catch (e) {
+      _error = 'Failed to load all bookings: $e';
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Load user bookings
-  Future<void> _loadUserBookings(String userId) async {
+  Future<void> loadUserBookings(String userId) async {
     _isLoading = true;
     _error = '';
     notifyListeners();
@@ -292,7 +319,7 @@ class BookingProvider with ChangeNotifier {
 
   // Refresh bookings
   Future<void> refreshBookings(String userId) async {
-    _loadUserBookings(userId);
+    loadUserBookings(userId);
     _loadUpcomingBookings(userId);
   }
 }

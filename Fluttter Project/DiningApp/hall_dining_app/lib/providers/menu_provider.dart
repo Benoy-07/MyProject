@@ -33,18 +33,17 @@ class MenuProvider with ChangeNotifier {
 
   // Initialize provider
   void initialize() {
-    _loadTodaysMenu();
+    loadTodaysMenu();
     _loadFeaturedItems();
   }
 
   // Load today's menu
-  Future<void> _loadTodaysMenu() async {
+  Future<void> loadTodaysMenu() async {
     _isLoading = true;
     _error = '';
     notifyListeners();
 
     try {
-      // Listen to today's menu stream
       _firestoreService.getTodaysMenuStream().listen((menus) {
         _todaysMenu = menus.isNotEmpty ? menus.first : null;
         _isLoading = false;
@@ -64,8 +63,6 @@ class MenuProvider with ChangeNotifier {
   // Load featured menu items
   Future<void> _loadFeaturedItems() async {
     try {
-      // For now, we'll get featured items from today's menu
-      // In a real app, you might have a separate featured items collection
       if (_todaysMenu != null) {
         _featuredItems = [
           ..._todaysMenu!.breakfast.where((item) => item.isFeatured),
@@ -96,6 +93,42 @@ class MenuProvider with ChangeNotifier {
     }
   }
 
+  // Add menu item
+  Future<void> addMenuItem(MenuItem item) async {
+    try {
+      await _firestoreService.addMenuItem(item);
+      await loadTodaysMenu(); // Refresh menu after adding
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to add menu item: $e';
+      notifyListeners();
+    }
+  }
+
+  // Update menu item
+  Future<void> updateMenuItem(MenuItem item) async {
+    try {
+      await _firestoreService.updateMenuItem(item);
+      await loadTodaysMenu(); // Refresh menu after updating
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to update menu item: $e';
+      notifyListeners();
+    }
+  }
+
+  // Delete menu item
+  Future<void> deleteMenuItem(String itemId) async {
+    try {
+      await _firestoreService.deleteMenuItem(itemId);
+      await loadTodaysMenu(); // Refresh menu after deleting
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to delete menu item: $e';
+      notifyListeners();
+    }
+  }
+
   // Get menu items by category for selected date
   List<MenuItem> getMenuByCategory(String category) {
     if (_todaysMenu == null) return [];
@@ -122,7 +155,6 @@ class MenuProvider with ChangeNotifier {
   void setSelectedDate(DateTime date) {
     _selectedDate = date;
     notifyListeners();
-    // You might want to load menu for the selected date here
   }
 
   // Add item to cart
@@ -199,13 +231,11 @@ class MenuProvider with ChangeNotifier {
     }
     
     return allItems.where((item) {
-      // Filter by dietary tags
       if (dietaryTags != null && dietaryTags.isNotEmpty) {
         final hasAllTags = dietaryTags.every((tag) => item.dietaryTags.contains(tag));
         if (!hasAllTags) return false;
       }
       
-      // Filter by max price
       if (maxPrice != null && item.price > maxPrice) {
         return false;
       }
@@ -218,13 +248,13 @@ class MenuProvider with ChangeNotifier {
   List<String> getAvailableCategories() {
     final categories = <String>[];
     
-    if (_todaysMenu?.breakfast.isNotEmpty == true) {
+    if (_todaysMenu?.hasBreakfast ?? false) {
       categories.add('breakfast');
     }
-    if (_todaysMenu?.lunch.isNotEmpty == true) {
+    if (_todaysMenu?.hasLunch ?? false) {
       categories.add('lunch');
     }
-    if (_todaysMenu?.dinner.isNotEmpty == true) {
+    if (_todaysMenu?.hasDinner ?? false) {
       categories.add('dinner');
     }
     
@@ -239,7 +269,7 @@ class MenuProvider with ChangeNotifier {
 
   // Refresh menu data
   Future<void> refreshMenu() async {
-    _loadTodaysMenu();
+    loadTodaysMenu();
     _loadFeaturedItems();
   }
 }

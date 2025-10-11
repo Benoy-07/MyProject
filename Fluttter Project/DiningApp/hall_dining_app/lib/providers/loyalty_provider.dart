@@ -304,5 +304,17 @@ class LoyaltyProvider with ChangeNotifier {
     loadUserLoyalty(userId);
   }
 
-  String getTierBenefits(LoyaltyTier tier) {}
+  // Get tier benefits
+  String getTierBenefits(LoyaltyTier tier) {
+    switch (tier) {
+      case LoyaltyTier.bronze:
+        return '5% discount on meals, priority seating';
+      case LoyaltyTier.silver:
+        return '10% discount on meals, priority seating, exclusive events';
+      case LoyaltyTier.gold:
+        return '15% discount on meals, priority seating, exclusive events, free dessert monthly';
+      case LoyaltyTier.platinum:
+        return '20% discount on meals, VIP seating, exclusive events, free dessert weekly';
+    }
+  }
 }

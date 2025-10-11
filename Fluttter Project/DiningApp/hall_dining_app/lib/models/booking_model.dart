@@ -159,6 +159,8 @@ class Booking {
     }
   }
 
+  DateTime? get date => null;
+
   Booking copyWith({
     String? id,
     String? userId,
@@ -252,6 +254,10 @@ class BookingItem {
   }
 
   double get totalPrice => unitPrice * quantity;
+
+  get name => null;
+
+  get price => null;
 
   BookingItem copyWith({
     String? menuItemId,

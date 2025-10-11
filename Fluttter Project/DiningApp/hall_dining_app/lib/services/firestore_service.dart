@@ -10,8 +10,6 @@ import '../models/notification_model.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
-  get FieldValue => null;
 
   // User Operations
   Future<void> updateUser(AppUser user) async {
@@ -97,6 +95,104 @@ class FirestoreService {
       await _firestore.collection('menus').doc(menu.id).update(menu.toMap());
     } catch (e) {
       throw Exception('Failed to update menu: $e');
+    }
+  }
+
+  Future<void> addMenuItem(MenuItem item) async {
+    try {
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final docId = todayStart.toIso8601String();
+      final docRef = _firestore.collection('menus').doc(docId);
+
+      final doc = await docRef.get();
+      Map<String, dynamic> data = doc.exists ? doc.data()! : {
+        'id': docId,
+        'date': todayStart.millisecondsSinceEpoch,
+        'breakfast': [],
+        'lunch': [],
+        'dinner': [],
+        'isSpecialDay': false,
+        'createdAt': now.millisecondsSinceEpoch,
+      };
+
+      final List<Map<String, dynamic>> categoryItems =
+          List<Map<String, dynamic>>.from(data[item.category] ?? []);
+      categoryItems.add(item.toMap());
+
+      await docRef.set({
+        ...data,
+        item.category: categoryItems,
+        'updatedAt': now.millisecondsSinceEpoch,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      throw Exception('Failed to add menu item: $e');
+    }
+  }
+
+  Future<void> updateMenuItem(MenuItem item) async {
+    try {
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final docId = todayStart.toIso8601String();
+      final docRef = _firestore.collection('menus').doc(docId);
+
+      final doc = await docRef.get();
+      if (!doc.exists) {
+        throw Exception('Menu document does not exist for today');
+      }
+
+      final data = doc.data()!;
+      final List<Map<String, dynamic>> categoryItems =
+          List<Map<String, dynamic>>.from(data[item.category] ?? []);
+
+      final index = categoryItems.indexWhere((element) => element['id'] == item.id);
+      if (index == -1) {
+        throw Exception('Menu item not found');
+      }
+
+      categoryItems[index] = item.toMap();
+
+      await docRef.update({
+        item.category: categoryItems,
+        'updatedAt': now.millisecondsSinceEpoch,
+      });
+    } catch (e) {
+      throw Exception('Failed to update menu item: $e');
+    }
+  }
+
+  Future<void> deleteMenuItem(String itemId) async {
+    try {
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final docId = todayStart.toIso8601String();
+      final docRef = _firestore.collection('menus').doc(docId);
+
+      final doc = await docRef.get();
+      if (!doc.exists) {
+        throw Exception('Menu document does not exist for today');
+      }
+
+      final data = doc.data()!;
+      final categories = ['breakfast', 'lunch', 'dinner'];
+
+      for (final category in categories) {
+        final List<Map<String, dynamic>> categoryItems =
+            List<Map<String, dynamic>>.from(data[category] ?? []);
+        final index = categoryItems.indexWhere((element) => element['id'] == itemId);
+        if (index != -1) {
+          categoryItems.removeAt(index);
+          await docRef.update({
+            category: categoryItems,
+            'updatedAt': now.millisecondsSinceEpoch,
+          });
+          return;
+        }
+      }
+      throw Exception('Menu item not found');
+    } catch (e) {
+      throw Exception('Failed to delete menu item: $e');
     }
   }
 
@@ -240,7 +336,6 @@ class FirestoreService {
   Future<String> createSubscription(UserSubscription subscription) async {
     try {
       final docRef = _firestore.collection('user_subscriptions').doc();
-     // subscription = subscription.copyWith(id: docRef.id);
       await docRef.set(subscription.toMap());
       return docRef.id;
     } catch (e) {
@@ -377,7 +472,7 @@ class FirestoreService {
 
       final todaysBookings = bookingsSnapshot.docs.length;
 
-      // Get total revenue (you might want to calculate this from payments)
+      // Get total revenue
       final paymentsSnapshot = await _firestore
           .collection('payments')
           .where('status', isEqualTo: 'completed')
