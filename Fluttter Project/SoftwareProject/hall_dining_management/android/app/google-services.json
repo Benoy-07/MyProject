@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "634566928443",
+    "project_id": "diningmanagement-547f3",
+    "storage_bucket": "diningmanagement-547f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:634566928443:android:50d7a5265e709da804541e",
+        "android_client_info": {
+          "package_name": "com.example.hall_dining_management"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "634566928443-dramf2r8ddipaaqvshgjc18i8euialor.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0npyogrlv_QNdPoYX_bhpKQaBrz2nCWM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "634566928443-dramf2r8ddipaaqvshgjc18i8euialor.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
