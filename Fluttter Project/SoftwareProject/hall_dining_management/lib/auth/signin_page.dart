@@ -32,55 +32,52 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> _signIn() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  if (_formKey.currentState!.validate()) {
+    setState(() {
+      _isLoading = true;
+    });
 
-      final error = await _authService.signIn(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+    final error = await _authService.signIn(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
 
-      if (error != null) {
-        setState(() {
-          _isLoading = false;
-        });
-        _showToast(error, isError: true);
-      } else {
-        // Get current user
-        final user = _authService.currentUser;
-        if (user != null) {
-          // Get user role and navigate accordingly
-          final role = await _authService.getUserRole(user.uid);
-          
-          _showToast('Sign in successful!');
-          
-          // Navigate based on role
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (role == 'admin') {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
-                (route) => false,
-              );
-            } else {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const UserHomeScreen()),
-                (route) => false,
-              );
-            }
-          });
-        } else {
-          setState(() {
-            _isLoading = false;
-          });
-          _showToast('User not found', isError: true);
-        }
-      }
+    if (error != null) {
+      setState(() => _isLoading = false);
+      _showToast(error, isError: true);
+      return;
     }
+
+    // Fetch user role
+    final user = _authService.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      _showToast('User not found!', isError: true);
+      return;
+    }
+
+    final role = await _authService.getUserRole(user.uid);
+
+    _showToast('Login successful! Redirecting...');
+
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (role == "admin") {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
+          (_) => false,
+        );
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const UserHomeScreen()),
+          (_) => false,
+        );
+      }
+    });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

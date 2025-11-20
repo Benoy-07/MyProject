@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hall_dining_management/auth/signin_page.dart';
 import 'package:hall_dining_management/service/auth_service.dart';
-//import 'auth_service.dart';
-//import 'signin_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -17,11 +15,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _passkeyController = TextEditingController();
   final _authService = AuthService();
   String _selectedRole = 'user';
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _showPasskeyField = false;
 
   void _showToast(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -36,37 +36,70 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Future<void> _signUp() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  bool _validatePasskey(String passkey) {
+    return passkey == '@@@@';
+  }
 
-      final error = await _authService.signUp(
-        username: _usernameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        role: _selectedRole,
+Future<void> _signUp() async {
+  if (_formKey.currentState!.validate()) {
+    // Validate admin passkey
+    if (_selectedRole == 'admin') {
+      if (_passkeyController.text.isEmpty) {
+        _showToast('Please enter admin passkey', isError: true);
+        return;
+      }
+      if (!_validatePasskey(_passkeyController.text)) {
+        _showToast('Invalid admin passkey', isError: true);
+        return;
+      }
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final error = await _authService.signUp(
+      username: _usernameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      role: _selectedRole,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (error != null) {
+      _showToast(error, isError: true);
+    } else {
+      _showToast(
+        'Account created successfully! Redirecting...',
+        isError: false,
       );
 
-      setState(() {
-        _isLoading = false;
+      // wait for 1.5 sec then go to Login
+      Future.delayed(const Duration(seconds: 1), () {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const SignInScreen()),
+          (route) => false,
+        );
       });
+    }
+  }
+}
 
-      if (error != null) {
-        _showToast(error, isError: true);
-      } else {
-        _showToast('Sign up successful! Redirecting to sign in...');
-        
-        // Fixed navigation - clear stack and go to sign in
-        Future.delayed(const Duration(seconds: 2), () {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const SignInScreen()),
-            (route) => false,
-          );
-        });
-      }
+
+  void _onRoleChanged(String? value) {
+    if (value != null) {
+      setState(() {
+        _selectedRole = value;
+        _showPasskeyField = value == 'admin';
+        // Clear passkey when switching from admin to user
+        if (value != 'admin') {
+          _passkeyController.clear();
+        }
+      });
     }
   }
 
@@ -236,6 +269,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
+                    
                     // Role Selection
                     Container(
                       width: double.infinity,
@@ -259,14 +293,64 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               child: Text('Admin'),
                             ),
                           ],
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedRole = value!;
-                            });
-                          },
+                          onChanged: _onRoleChanged,
                         ),
                       ),
                     ),
+                    
+                    // Admin Passkey Field (Visible only when admin is selected)
+                    if (_showPasskeyField) ...[
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _passkeyController,
+                        decoration: InputDecoration(
+                          labelText: 'Admin Passkey',
+                          prefixIcon: const Icon(Icons.security),
+                          hintText: 'Enter admin passkey',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          helperText: 'Required for admin registration',
+                          helperStyle: TextStyle(
+                            color: Colors.orange[700],
+                            fontSize: 12,
+                          ),
+                        ),
+                        obscureText: true,
+                        validator: (value) {
+                          if (_selectedRole == 'admin' && (value == null || value.isEmpty)) {
+                            return 'Admin passkey is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.orange.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info, color: Colors.orange[700], size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Admin passkey is required to create admin account',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange[700],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    
                     const SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,
@@ -314,6 +398,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _passkeyController.dispose();
     super.dispose();
   }
 }
