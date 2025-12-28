@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "543966365178",
+    "project_id": "halldinning-ebbf3",
+    "storage_bucket": "halldinning-ebbf3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:543966365178:android:5c990d619351b4c0c61043",
+        "android_client_info": {
+          "package_name": "com.example.halldinningapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "543966365178-3h6vvnr0uujo2ikfsoqk17dbpnfans60.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClLzo7yCRMF8N-soKEZQmL4_MTHTKmBPM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "543966365178-3h6vvnr0uujo2ikfsoqk17dbpnfans60.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "543966365178-s6704da40ljr9lo8kr3fn00hmf2497us.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.halldinningapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
